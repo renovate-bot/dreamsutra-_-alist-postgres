@@ -1,2 +1,3 @@
-# alist-northflank-postgresql
+# alist-postgresql
 
+- [x] docker

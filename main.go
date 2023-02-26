@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"github.com/alist-org/alist/v3/pkg/utils/random"
 )
 
 type Database struct {
@@ -19,31 +20,43 @@ type Database struct {
 	Name        string `json:"name" env:"DB_NAME"`
 	DBFile      string `json:"db_file" env:"DB_FILE"`
 	TablePrefix string `json:"table_prefix" env:"DB_TABLE_PREFIX"`
-	SslMode     string `json:"ssl_mode" env:"DB_SLL_MODE"`
+	SSLMode     string `json:"ssl_mode" env:"DB_SSL_MODE"`
 }
 
 type Scheme struct {
-	Https    bool   `json:"https" env:"HTTPS"`
-	CertFile string `json:"cert_file" env:"CERT_FILE"`
-	KeyFile  string `json:"key_file" env:"KEY_FILE"`
+	Address      string `json:"address" env:"ADDR"`
+	HttpPort     int    `json:"http_port" env:"HTTP_PORT"`
+	HttpsPort    int    `json:"https_port" env:"HTTPS_PORT"`
+	ForceHttps   bool   `json:"force_https" env:"FORCE_HTTPS"`
+	CertFile     string `json:"cert_file" env:"CERT_FILE"`
+	KeyFile      string `json:"key_file" env:"KEY_FILE"`
+	UnixFile     string `json:"unix_file" env:"UNIX_FILE"`
+	UnixFilePerm string `json:"unix_file_perm" env:"UNIX_FILE_PERM"`
 }
 
-type CacheConfig struct {
-	Expiration      int64 `json:"expiration" env:"CACHE_EXPIRATION"`
-	CleanupInterval int64 `json:"cleanup_interval" env:"CLEANUP_INTERVAL"`
+type LogConfig struct {
+	Enable     bool   `json:"enable" env:"LOG_ENABLE"`
+	Name       string `json:"name" env:"LOG_NAME"`
+	MaxSize    int    `json:"max_size" env:"MAX_SIZE"`
+	MaxBackups int    `json:"max_backups" env:"MAX_BACKUPS"`
+	MaxAge     int    `json:"max_age" env:"MAX_AGE"`
+	Compress   bool   `json:"compress" env:"COMPRESS"`
 }
 
 type Config struct {
-	Force       bool        `json:"force"`
-	Address     string      `json:"address" env:"ADDR"`
-	Port        int         `json:"port" env:"PORT"`
-	Assets      string      `json:"assets" env:"ASSETS"`
-	LocalAssets string      `json:"local_assets" env:"LOCAL_ASSETS"`
-	SubFolder   string      `json:"sub_folder" env:"SUB_FOLDER"`
-	Database    Database    `json:"database"`
-	Scheme      Scheme      `json:"scheme"`
-	Cache       CacheConfig `json:"cache"`
-	TempDir     string      `json:"temp_dir" env:"TEMP_DIR"`
+	Force                 bool      `json:"force" env:"FORCE"`
+	SiteURL               string    `json:"site_url" env:"SITE_URL"`
+	Cdn                   string    `json:"cdn" env:"CDN"`
+	JwtSecret             string    `json:"jwt_secret" env:"JWT_SECRET"`
+	TokenExpiresIn        int       `json:"token_expires_in" env:"TOKEN_EXPIRES_IN"`
+	Database              Database  `json:"database"`
+	Scheme                Scheme    `json:"scheme"`
+	TempDir               string    `json:"temp_dir" env:"TEMP_DIR"`
+	BleveDir              string    `json:"bleve_dir" env:"BLEVE_DIR"`
+	Log                   LogConfig `json:"log"`
+	DelayedStart          int       `json:"delayed_start" env:"DELAYED_START"`
+	MaxConnections        int       `json:"max_connections" env:"MAX_CONNECTIONS"`
+	TlsInsecureSkipVerify bool      `json:"tls_insecure_skip_verify" env:"TLS_INSECURE_SKIP_VERIFY"`
 }
 
 func main() {
@@ -60,11 +73,20 @@ func main() {
 	port, _ := strconv.Atoi(u.Port())
 	name := u.Path[1:]
 	config := Config{
-		Address: "0.0.0.0",
-		Port:    5244,
-		Assets:  "/",
-		TempDir: "data/temp",
+		Scheme: Scheme{
+			Address:    "0.0.0.0",
+			UnixFile:   "",
+			HttpPort:   5244,
+			HttpsPort:  -1,
+			ForceHttps: false,
+			CertFile:   "",
+			KeyFile:    "",
+		},
+		JwtSecret:      random.String(16),
+		TokenExpiresIn: 48,
+		TempDir:        "data/temp",
 		Database: Database{
+			Type:        "postgres",
 			User:        user,
 			Password:    pass,
 			Host:        host,
@@ -72,11 +94,18 @@ func main() {
 			Name:        name,
 			TablePrefix: "x_",
 			DBFile:      "data/data.db",
+			SSLMode:     "require",
 		},
-		Cache: CacheConfig{
-			Expiration:      60,
-			CleanupInterval: 120,
+		BleveDir: "data/bleve",
+		Log: LogConfig{
+			Enable:     true,
+			Name:       "data/log/log.log",
+			MaxSize:    10,
+			MaxBackups: 5,
+			MaxAge:     28,
 		},
+		MaxConnections:        0,
+		TlsInsecureSkipVerify: true,
 	}
 	confBody, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {

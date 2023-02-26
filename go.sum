@@ -1,0 +1,4 @@
+github.com/alist-org/alist/v3 v3.23.0 h1:xYTs5X18ridSSTE3FiuGN8wyVm0ZPVu2jEEHh9XiF9s=
+github.com/alist-org/alist/v3 v3.23.0/go.mod h1:4uY+rDL1D1HiRQWdDtOZwzcJyGtG+zYGil4UhRxF2uA=
+github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
+github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
