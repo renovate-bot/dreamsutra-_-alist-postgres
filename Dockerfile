@@ -5,7 +5,7 @@ COPY *go* .
 RUN apk add --no-cache bash curl upx gcc git go musl-dev; \
     go build -ldflags='-s -w -extldflags "-static -fpic"' -o main main.go && upx -9 ./main
 
-FROM xhofe/alist:v3.23.0
+FROM xhofe/alist:v3.24.0
 LABEL MAINTAINER="i@nn.ci"
 
 ARG DATABASE_URL
